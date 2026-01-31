@@ -1,4 +1,4 @@
-import './MovieModal.module.css'
+import css from './MovieModal.module.css'
 
 export default function MovieModal() {
     return (
