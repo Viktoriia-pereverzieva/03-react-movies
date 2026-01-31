@@ -1,8 +1,8 @@
-// import css from './App.module.css'
-// import ErrorMessage from '../ErrorMessage/ErrorMessage'
-// import Loader from '../Loader/Loader'
+import css from './App.module.css'
+import ErrorMessage from '../ErrorMessage/ErrorMessage'
+import Loader from '../Loader/Loader'
 import MovieGrid from '../MovieGrid/MovieGrid'
-// import MovieModal from '../MovieModal/MovieModal'
+import MovieModal from '../MovieModal/MovieModal'
 import SearchBar from '../SearchBar/SearchBar'
 import { Toaster, toast }from 'react-hot-toast';
 import type { Movie } from '../../types/movie';
@@ -15,30 +15,43 @@ interface MovieHttpResponse {
 }
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
 
   const handleSearch = async (query: string) => {
     setMovies([]);
-    const response = await axios.get<MovieHttpResponse>(
-      `https://api.themoviedb.org/3/search/movie?query=${query}`,
-      {
-        headers: {
-          accept: 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN}`,
-        },
-      }
-    );
-    const resultData = response.data.results;
-    
-    if (resultData.length === 0) {
-      toast(
-        "No movies found for your request",
+    setIsLoading(true);
+    try {
+      const response = await axios.get<MovieHttpResponse>(
+        `https://api.themoviedb.org/3/search/movie?query=${query}`,
         {
-          duration: 6000,
+          headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN}`,
+          },
         }
       );
-    } else {
-      setMovies(resultData);
-      
+      const resultData = response.data.results;
+    
+      if (resultData.length === 0) {
+        toast(
+          "No movies found for your request",
+          {
+            duration: 6000,
+          }
+        );
+      } else {
+        setMovies(resultData);
+      }
+    } catch {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -46,12 +59,17 @@ export default function App() {
     <>
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-center" reverseOrder={false} />
-      {movies.length > 0 && (
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage />}
+
+      {!isLoading && !isError && movies.length > 0 && (
         <MovieGrid
           movies={movies}
           onSelect={(movie) => {
             console.log(movie)
           }} />)}
+      {isModalOpen && <MovieModal onClose={closeModal} />}
+
     </>
   );
 }
