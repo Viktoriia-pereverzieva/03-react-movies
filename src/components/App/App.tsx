@@ -18,14 +18,13 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
 
   const handleSearch = async (query: string) => {
     setMovies([]);
     setIsLoading(true);
+
     try {
       const response = await axios.get<MovieHttpResponse>(
         `https://api.themoviedb.org/3/search/movie?query=${query}`,
@@ -48,28 +47,43 @@ export default function App() {
       } else {
         setMovies(resultData);
       }
+
     } catch {
       setIsError(true);
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   };
 
+
   return (
-    <>
+    <div className={css.app}>
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-center" reverseOrder={false} />
+  
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
-
+  
       {!isLoading && !isError && movies.length > 0 && (
         <MovieGrid
           movies={movies}
           onSelect={(movie) => {
-            console.log(movie)
-          }} />)}
-      {isModalOpen && <MovieModal onClose={closeModal} />}
-
-    </>
+            setSelectedMovie(movie);
+            setIsModalOpen(true);
+          }}
+        />
+      )}
+  
+      {isModalOpen && selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedMovie(null);
+          }}
+        />
+      )}
+    </div>
   );
-}
+}  
