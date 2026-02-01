@@ -15,7 +15,6 @@ export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const handleSearch = async (query: string) => {
@@ -51,16 +50,14 @@ export default function App() {
           movies={movies}
           onSelect={(movie) => {
             setSelectedMovie(movie);
-            setIsModalOpen(true);
           }}
         />
       )}
   
-      {isModalOpen && selectedMovie && (
+      { selectedMovie && (
         <MovieModal
           movie={selectedMovie}
           onClose={() => {
-            setIsModalOpen(false);
             setSelectedMovie(null);
           }}
         />
